@@ -8,6 +8,7 @@ import sys
 import numpy
 import shutil
 import tarfile
+import zipfile
 import urllib.request as request
 import ssl
 
@@ -20,7 +21,7 @@ from distutils.extension import Extension
 
 from bq3d._version import __version__
 
-if sys.platform not in ['linux', 'darwin']:
+if sys.platform not in ['linux', 'darwin', 'win32']:
     raise EnvironmentError(f'Platform {sys.platform} not supported.')
 
 if sys.platform == 'linux':
@@ -31,6 +32,8 @@ elif sys.platform == 'darwin':
     opencv_libs = '.lib-osx'
     elastix_URL = 'elastix-5.0.0-mac.tar.gz'
     ilastik_URL = 'ilastik-1.3.3post2-OSX-noGurobi.tar.bz2'
+elif sys.platform == 'win32':
+    pass
 
 USE_CYTHON = 'auto'
 
@@ -171,22 +174,33 @@ class install(_install):
         with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
             shutil.copyfileobj(response, out_file)
             try:
-                tar = tarfile.open(tmp, "r:bz2") # Linux
+                try:
+                    tar = tarfile.open(tmp, "r:bz2") # Linux
+                except:
+                    tar = tarfile.open(tmp, "r:gz") # MacOS
+                tar.extractall(sink)
+                tar.close()
             except:
-                tar = tarfile.open(tmp, "r:gz") # MacOS
-            tar.extractall(sink)
-            tar.close()
+                zip = zipfile.open(tmp) # Windows
+                zip.extractall()
+                zip.close
 
         print('Installing ilastik')
         url = 'https://glams.bio.uci.edu/' + ilastik_URL
         tmp = Path(url).name
 
         sink = dest / 'ilastik-1.3.3'
-        with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
-            tar = tarfile.open(tmp, "r:bz2")
-            tar.extractall(sink)
-            tar.close()
+        try:
+            with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
+                tar = tarfile.open(tmp, "r:bz2")
+                tar.extractall(sink)
+                tar.close()
+        except:
+            zip = zipfile.open(tmp) # Windows
+            zip.extractall()
+            zip.close
+
 
         # Install ANTsPy
         if sys.platform == 'linux':
