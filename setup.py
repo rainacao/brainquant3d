@@ -170,16 +170,16 @@ class install(_install):
         print('Installing elastix')
         sink = dest / 'elastix-5.0.0'
         try:
-        url = 'https://glams.bio.uci.edu/' + elastix_URL
-        tmp = Path(url).name
-            with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
-                shutil.copyfileobj(response, out_file)
-                try:
-                    tar = tarfile.open(tmp, "r:bz2") # Linux
-                except:
-                    tar = tarfile.open(tmp, "r:gz") # MacOS
-                tar.extractall(sink)
-                tar.close()
+            url = 'https://glams.bio.uci.edu/' + elastix_URL
+            tmp = Path(url).name
+                with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
+                    shutil.copyfileobj(response, out_file)
+                        try:
+                        tar = tarfile.open(tmp, "r:bz2") # Linux
+                    except:
+                        tar = tarfile.open(tmp, "r:gz") # MacOS
+                    tar.extractall(sink)
+                    tar.close()
         except: # Windows
             url = 'https://github.com/SuperElastix/elastix/releases/download/5.1.0/elastix-5.1.0-win64.zip'
             tmp = Path(url).name
