@@ -33,7 +33,7 @@ elif sys.platform == 'darwin':
     elastix_URL = 'elastix-5.0.0-mac.tar.gz'
     ilastik_URL = 'ilastik-1.3.3post2-OSX-noGurobi.tar.bz2'
 elif sys.platform == 'win32':
-    pass
+    opencv_libs = '.lib-win32'
 
 USE_CYTHON = 'auto'
 
@@ -168,38 +168,44 @@ class install(_install):
         dest = Path(build_dir) / 'bq3d/.external'
 
         print('Installing elastix')
+        sink = dest / 'elastix-5.0.0'
+        try:
         url = 'https://glams.bio.uci.edu/' + elastix_URL
         tmp = Path(url).name
-        sink = dest / 'elastix-5.0.0'
-        with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
-            shutil.copyfileobj(response, out_file)
-            try:
+            with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
+                shutil.copyfileobj(response, out_file)
                 try:
                     tar = tarfile.open(tmp, "r:bz2") # Linux
                 except:
                     tar = tarfile.open(tmp, "r:gz") # MacOS
                 tar.extractall(sink)
                 tar.close()
-            except:
+        except: # Windows
+            url = 'https://github.com/SuperElastix/elastix/releases/download/5.1.0/elastix-5.1.0-win64.zip'
+            tmp = Path(url).name
+            with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
                 zip = zipfile.open(tmp) # Windows
                 zip.extractall()
                 zip.close
 
         print('Installing ilastik')
-        url = 'https://glams.bio.uci.edu/' + ilastik_URL
-        tmp = Path(url).name
 
         sink = dest / 'ilastik-1.3.3'
         try:
+            url = 'https://glams.bio.uci.edu/' + ilastik_URL
+            tmp = Path(url).name
             with request.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
-                shutil.copyfileobj(response, out_file)
+                shutil.copyfileobj(response, out_file) 
                 tar = tarfile.open(tmp, "r:bz2")
                 tar.extractall(sink)
                 tar.close()
-        except:
-            zip = zipfile.open(tmp) # Windows
-            zip.extractall()
-            zip.close
+        except: # Windows
+            url = "https://files.ilastik.org/ilastik-1.3.3post3-win64.exe"
+            tmp = Path(url).name
+            with requeset.urlopen(url, context=ctx) as response, open(tmp, 'wb') as out_file:
+                zip = zipfile.open(tmp) # Windows
+                zip.extractall()
+                zip.close
 
 
         # Install ANTsPy
